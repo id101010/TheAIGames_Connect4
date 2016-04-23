@@ -107,7 +107,7 @@ void get_opponent_move(gamesettings_t *game)
 /* Calculate bot move using minmax*/
 void get_bot_move(void)
 {
-    // TODO: Minmax logic goes here ...
+    // TODO: Minmax logic goes here ... 
 
     if(i*j==9)  {
         die("draw");
