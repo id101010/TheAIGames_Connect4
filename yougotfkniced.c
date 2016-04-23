@@ -99,11 +99,8 @@ void get_opponent_move(game_t *game)
 {
     int x=0, y=0;
 
-    // Read X,Y coordinates here
-    //scanf("%d%*c%d", &x, &y);
-
-    x--;
-    y--;
+    // TODO: Read X,Y coordinates here
+    // e.g scanf("%d%*c%d", &x, &y);
 
     if(game->board[x][y]!= ' ') {
         die("Invalid move");
