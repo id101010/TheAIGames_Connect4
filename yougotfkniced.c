@@ -12,7 +12,7 @@
 /* Globals */
 char input[MAX_LENGTH]; // Gets filled with stuff from stdin
 
-typedef struct gamesettings_s { // Game object struct for settings, actions and updates
+typedef struct game_s { // Game object struct for settings, actions and updates
     // Startup stuff
     int timebank;
     int time_per_move;
@@ -28,7 +28,15 @@ typedef struct gamesettings_s { // Game object struct for settings, actions and 
     // Action stuff
     int move;
     int pace_disc;
-} gamesettings_t;
+} game_t;
+
+/* Prototypes */
+char *get_line(char *s, size_t n, FILE *f);
+void die(const char *message);
+void init_board(game_t *game);
+void parser(void);
+void get_bot_move(game_t *game);
+void get_opponent_move(game_t *game);
 
 /* Abort on failure */
 void die(const char *message)
@@ -58,8 +66,8 @@ char *get_line(char *s, size_t n, FILE *f)
     return p;
 }
 
-/* Initialize the game->board */
-void init_game->board(gamesettings_t *game)
+/* Initialize the game board */
+void init_board(game_t *game)
 {
     int i, j;
 
@@ -87,9 +95,9 @@ void parser(void)
 }
 
 /* Get opponents move */
-void get_opponent_move(gamesettings_t *game)
+void get_opponent_move(game_t *game)
 {
-    int x, y;
+    int x=0, y=0;
 
     // Read X,Y coordinates here
     //scanf("%d%*c%d", &x, &y);
@@ -100,14 +108,16 @@ void get_opponent_move(gamesettings_t *game)
     if(game->board[x][y]!= ' ') {
         die("Invalid move");
     } else {
-        matrx[x][y] = 'X';
+        game->board[x][y] = 'X';
     }
 }
 
 /* Calculate bot move using minmax*/
-void get_bot_move(void)
+void get_bot_move(game_t *game)
 {
-    // TODO: Minmax logic goes here ... 
+    int i=0,j=0;
+
+    // TODO: Minmax logic goes here ...
 
     if(i*j==9)  {
         die("draw");
@@ -121,10 +131,10 @@ int main(int argc, char **argv)
 {
     /* Game vars */
     bool done = false;      // done flag
-    gamesettings_t game;    // game object
+    game_t game;    // game object
 
     /* init stuff */
-    init_field(&game);      // Init the game game->board
+    init_board(&game);      // Init the game game->board
 
     do {
         // TODO: ... game loop
