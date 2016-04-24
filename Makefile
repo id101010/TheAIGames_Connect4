@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -g -O0
 CLIBS=
-PRGNAME=yougoticed
+PRGNAME=hatred
 STYLE=astyle --style=1tbs
 RUN=valgrind --leak-check=full
 DEBUG=gdb --args
@@ -12,6 +12,7 @@ all: clean build run clean
 clean:
 	$(STYLE) $(PRGNAME).c
 	rm -f *.o
+	rm -f $(PRGNAME)
 build:
 	$(CC) $(CFLAGS) $(CLIBS) -o $(PRGNAME) $(PRGNAME).c
 run:
