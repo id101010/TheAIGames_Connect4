@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -g -O0
-CLIBS=
+CFLAGS=-std=c99 -Wall -O2 -static
+CLIBS=-lm
 PRGNAME=hatred
 STYLE=astyle --style=1tbs
 RUN=valgrind --leak-check=full
@@ -14,9 +14,10 @@ clean:
 	rm -f *.o
 	rm -f $(PRGNAME)
 build:
-	$(CC) $(CFLAGS) $(CLIBS) -o $(PRGNAME) $(PRGNAME).c
+	$(CC) $(CFLAGS) $(CLIBS) -o $(PRGNAME) -Isrc $(PRGNAME).c
 run:
+	./$(PRGNAME) $(ARGS)
+memtest:
 	$(RUN) ./$(PRGNAME) $(ARGS)
 debug:
 	$(DEBUG) ./$(PRGNAME)
-	

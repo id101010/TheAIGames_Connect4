@@ -5,12 +5,13 @@
 #include<stdbool.h>
 #include<assert.h>
 #include<time.h>
+#include<limits.h>
 
 /* Defines */
 #define MAX_LENGTH      255
 #define FIELD_WIDTH     7
 #define FIELD_HEIGHT    6
-#define FIELD (FIELD_WIDTH * FIELD_HEIGHT)
+#define FIELD           (FIELD_WIDTH * FIELD_HEIGHT)
 //#define DEBUG
 
 /* Globals */
@@ -18,7 +19,7 @@ char input[3][MAX_LENGTH];  // Gets filled with stuff from stdin
 char line[MAX_LENGTH];
 
 typedef struct game_s {     // Game object struct for settings, actions and updates
-    // Startup stuff
+    /* Settings */
     int timebank;
     int time_per_move;
     char player_names[MAX_LENGTH];
@@ -26,7 +27,7 @@ typedef struct game_s {     // Game object struct for settings, actions and upda
     int your_botid;
     int field_columns;
     int field_rows;
-    // Update stuff
+    /* Updates */
     int round;
     int field[FIELD];
 } game_t;
@@ -39,6 +40,7 @@ void parse_settings(char *str1, char *str2, game_t *game);
 void parse_update(char *str1, char *str2, char *str3, game_t *game);
 void ai_action(char *str1, char *str2, game_t *game);
 void debug_print(game_t *game);
+void init_game(game_t *game);
 
 /* Abort on failure */
 void die(const char *message)
@@ -46,26 +48,26 @@ void die(const char *message)
     if(errno) {
         perror(message);
     } else {
-        printf("[ERROR] %s\n ", message);
+        fprintf(stderr, "[ERROR] %s\n ", message);
     }
 
     exit(EXIT_FAILURE);
 }
 
 /* Read line from stdin (safe) */
-char *get_line(char *s, size_t n, FILE *f)
+char *get_line(char *string, size_t size, FILE *file)
 {
-    char *p = fgets(s, n, f);
+    char *buffer = fgets(string, size, file);
 
-    if(p != NULL) {
-        strtok(s, "\n");
+    if(buffer != NULL) {
+        strtok(string, "\n");
     }
 
-    if(s[0] == '\n') {
-        s[0] = 0;
+    if(string[0] == '\n') {
+        string[0] = 0;
     }
 
-    return p;
+    return buffer;
 }
 
 /* Parse arguments from game engine */
@@ -94,6 +96,7 @@ void parser(game_t *game)
         if(!strncmp(line, "action ", 7)) {
             sscanf(&line[7], "%s %s", input[0], input[1]);
             ai_action(input[0], input[1], game);
+            fflush(stdout); // Important!
 #ifdef DEBUG
             debug_print(game);
 #endif
@@ -243,30 +246,34 @@ void parse_update(char *str1, char *str2, char *str3, game_t *game)
 /* Debug function which prints the contents of the game object */
 void debug_print(game_t *game)
 {
-    printf("\n---------BEGIN GAME OBJ DUMP-----------");
-    printf("\nsetting:timebank\t%d",      game->timebank);
-    printf("\nsetting:time_per_move\t%d", game->time_per_move);
-    printf("\nsetting:player_names\t%s",  game->player_names);
-    printf("\nsetting:your_bot\t%s",      game->your_bot);
-    printf("\nsetting:your_botid\t%d",    game->your_botid);
-    printf("\nsetting:field_columns\t%d", game->field_columns);
-    printf("\nsetting:field_rows\t%d",    game->field_rows);
-    printf("\nupdate:round\t\t%d",        game->round);
-    printf("\nupdate:field\t\t");
+    fprintf(stdout, "\n---------BEGIN GAME OBJ DUMP-----------");
+    fprintf(stdout, "\nsetting:timebank\t%d",      game->timebank);
+    fprintf(stdout, "\nsetting:time_per_move\t%d", game->time_per_move);
+    fprintf(stdout, "\nsetting:player_names\t%s",  game->player_names);
+    fprintf(stdout, "\nsetting:your_bot\t%s",      game->your_bot);
+    fprintf(stdout, "\nsetting:your_botid\t%d",    game->your_botid);
+    fprintf(stdout, "\nsetting:field_columns\t%d", game->field_columns);
+    fprintf(stdout, "\nsetting:field_rows\t%d",    game->field_rows);
+    fprintf(stdout, "\nupdate:round\t\t%d",        game->round);
+    fprintf(stdout, "\nupdate:field\t\t");
 
     for(int i = 0; i < FIELD; i++) {
         if(((i%7)==0) && (i>0)) {
-            printf("\n\t\t\t");
+            fprintf(stdout, "\n\t\t\t");
         }
-        printf("%d ", game->field[i]);
+        fprintf(stdout, "%d ", game->field[i]);
     }
 
-    printf("\n-----------END GAME OBJ DUMP-----------");
+    fprintf(stdout, "\n-----------END GAME OBJ DUMP-----------");
 }
 
 /* Init game object */
 void init_game(game_t *game)
 {
+    /* init random number generator */
+    srand(time(NULL));
+
+    /* init game object */
     game->timebank = 0;
     game->time_per_move = 0;
     strcpy(game->player_names, "player1,player2");
@@ -281,24 +288,34 @@ void init_game(game_t *game)
     }
 }
 
-/* Random AI Action for engine test */
+/* Random AI action for engine test */
 void ai_action(char *str1, char *str2, game_t *game)
 {
+    int column = 0;
+
     // action move
     if (!strcmp(str1, "move")) {
         game->timebank = atoi(str2);
     }
 
-    int column = 0;
-
-    srand(time(NULL));
+    // random move
     column = rand() % FIELD_WIDTH;
-
-    printf("place_disc %d\n", column);
-
+    fprintf(stdout, "place_disc %d\n", column);
 }
 
-// Main routine
+/* Calls the alpha-beta pruning algorithm */
+int alpha_beta_search(game_t *game)
+{
+    return max_value(game, 0, INT_MIN, INT_MAX);
+}
+
+/* Returns the highest possible utility value */
+int max_value(game_t *game, int depth, int alpha, int beta)
+{
+    return 0;
+}
+
+/* Main routine */
 int main(int argc, char **argv)
 {
     /* Game vars */
