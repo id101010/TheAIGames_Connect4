@@ -315,13 +315,12 @@ void ai_action(char *str1, char *str2, game_t *game)
     //fprintf(stdout, "place_disc %d\n", column);
 
     /* minimax decision */
-    int col, move;
-    int n, val = -10000-1;
+    int col=0, move=0, n=0, val = -10000-1;
 
     for(col=0; col < 7; col++) {
         if(game->field[6-1][col]==0) {
             put(game->field, col, 2);
-            n = minimax(game->field, DEPTH, 1);
+            n = minimax(game->field, DEPTH, 2);
             if ( -n > val ) {
                 val = -n;
                 move = col;
@@ -334,13 +333,13 @@ void ai_action(char *str1, char *str2, game_t *game)
 }
 
 /* set disc */
-int put(int board[FIELD_HEIGHT][FIELD_WIDTH], int column, int player)
+int put(int field[FIELD_HEIGHT][FIELD_WIDTH], int column, int player)
 {
     int i;
 
     for(i = 0; i < FIELD_HEIGHT; i++) {
-        if(board[i][column] == 0) {
-            board[i][column] = player;
+        if(field[i][column] == 0) {
+            field[i][column] = player;
             return i+1;
         }
     }
@@ -349,26 +348,26 @@ int put(int board[FIELD_HEIGHT][FIELD_WIDTH], int column, int player)
 }
 
 /* remove disc */
-void rmv(int board[FIELD_HEIGHT][FIELD_WIDTH], int column)
+void rmv(int field[FIELD_HEIGHT][FIELD_WIDTH], int column)
 {
     int i;
 
     for (i=FIELD_HEIGHT-1; i>=0; i--) {
-        if (board[i][column] != 0) {
-            board[i][column] = 0;
+        if (field[i][column] != 0) {
+            field[i][column] = 0;
         }
     }
 }
 
 /*0=no, 1=your_bot, 2=opponent, 3=stalemate */
-int endgame(int s[FIELD_HEIGHT][FIELD_WIDTH], int player)
+int endgame(int f[FIELD_HEIGHT][FIELD_WIDTH], int player)
 {
     int i, j;
 
     //check horizontals
     for(i=0; i<6; i++)
         for(j=0; j<=7-4; j++) {
-            if(s[i][j]== player && s[i][j+1]== player && s[i][j+2]== player && s[i][j+3]== player) {
+            if(f[i][j]== player && f[i][j+1]== player && f[i][j+2]== player && f[i][j+3]== player) {
                 return player;
             }
         }
@@ -376,7 +375,7 @@ int endgame(int s[FIELD_HEIGHT][FIELD_WIDTH], int player)
     //check verticals
     for(i=0; i<=6-4; i++)
         for(j=0; j<7; j++) {
-            if(s[i][j]== player && s[i+1][j]== player && s[i+2][j]== player && s[i+3][j]== player ) {
+            if(f[i][j]== player && f[i+1][j]== player && f[i+2][j]== player && f[i+3][j]== player ) {
                 return player;
             }
         }
@@ -384,7 +383,7 @@ int endgame(int s[FIELD_HEIGHT][FIELD_WIDTH], int player)
     //check main diagonals (\)
     for(i=6-1; i>=4-1; i--)
         for(j=0; j<=7-4; j++) {
-            if(s[i][j]== player && s[i-1][j+1]== player && s[i-2][j+2]== player && s[i-3][j+3]== player) {
+            if(f[i][j]== player && f[i-1][j+1]== player && f[i-2][j+2]== player && f[i-3][j+3]== player) {
                 return player;
             }
         }
@@ -392,14 +391,14 @@ int endgame(int s[FIELD_HEIGHT][FIELD_WIDTH], int player)
     //check other diagonals (/)
     for(i=0; i<=6-4; i++)
         for(j=0; j<=7-4; j++) {
-            if(s[i][j]== player && s[i+1][j+1]== player && s[i+2][j+2]== player && s[i+3][j+3]== player) {
+            if(f[i][j]== player && f[i+1][j+1]== player && f[i+2][j+2]== player && f[i+3][j+3]== player) {
                 return player;
             }
         }
 
     //check if stalement
     for(i=0; i<7; i++)
-        if(s[i][6-1]==0) {
+        if(f[i][6-1]==0) {
             return 0;    //game haven't finished yet - there's at least one empty cell in a top of a row
         }
 
@@ -407,7 +406,7 @@ int endgame(int s[FIELD_HEIGHT][FIELD_WIDTH], int player)
 }
 
 /* Calculates the score of a move */
-int heuristic(int s[6][7])
+int heuristic(int f[FIELD_HEIGHT][FIELD_WIDTH])
 {
     int result = 0;
     int i, j;
@@ -415,10 +414,10 @@ int heuristic(int s[6][7])
     //check horizontals
     for(i=0; i<6; i++)
         for(j=0; j<=7-4; j++) {
-            if(s[i][j]!= 2 && s[i][j+1]!= 2 && s[i][j+2]!= 2 && s[i][j+3]!= 2) {
+            if(f[i][j]!= 2 && f[i][j+1]!= 2 && f[i][j+2]!= 2 && f[i][j+3]!= 2) {
                 result++;
             }
-            if(s[i][j]!= 1 && s[i][j+1]!= 1 && s[i][j+2]!= 1 && s[i][j+3]!= 1) {
+            if(f[i][j]!= 1 && f[i][j+1]!= 1 && f[i][j+2]!= 1 && f[i][j+3]!= 1) {
                 result--;
             }
         }
@@ -426,10 +425,10 @@ int heuristic(int s[6][7])
     //check verticals
     for(i=0; i<=6-4; i++)
         for(j=0; j<7; j++) {
-            if(s[i][j]!= 2 && s[i+1][j]!= 2 && s[i+2][j]!= 2 && s[i+3][j]!= 2 ) {
+            if(f[i][j]!= 2 && f[i+1][j]!= 2 && f[i+2][j]!= 2 && f[i+3][j]!= 2 ) {
                 result++;
             }
-            if(s[i][j]!= 1 && s[i+1][j]!= 1 && s[i+2][j]!= 1 && s[i+3][j]!= 1 ) {
+            if(f[i][j]!= 1 && f[i+1][j]!= 1 && f[i+2][j]!= 1 && f[i+3][j]!= 1 ) {
                 result--;
             }
         }
@@ -437,12 +436,9 @@ int heuristic(int s[6][7])
     return result;
 }
 
-int minimax(int board[6][7], int depth, int turn /*1 or 2*/)
+int minimax(int board[FIELD_HEIGHT][FIELD_WIDTH], int depth, int turn /*1 or 2*/)
 {
-    int e=0;
-    int col=0, best=0;
-    int n=0 ;
-    int player=0;
+    int n=0, e=0, col=0, best=0, player=0;
 
     if((e=endgame(board, player))) {
         if(e==3) {
