@@ -11,6 +11,7 @@
 #define MAX_LENGTH      255
 #define FIELD_WIDTH     7
 #define FIELD_HEIGHT    6
+#define DEPTH           5
 #define FIELD           (FIELD_WIDTH * FIELD_HEIGHT)
 //#define DEBUG
 
@@ -29,7 +30,7 @@ typedef struct game_s {     // Game object struct for settings, actions and upda
     int field_rows;
     /* Updates */
     int round;
-    int field[FIELD];
+    int field[FIELD_HEIGHT][FIELD_WIDTH];
 } game_t;
 
 /* Prototypes */
@@ -41,6 +42,13 @@ void parse_update(char *str1, char *str2, char *str3, game_t *game);
 void ai_action(char *str1, char *str2, game_t *game);
 void debug_print(game_t *game);
 void init_game(game_t *game);
+void rmv(int board[FIELD_HEIGHT][FIELD_WIDTH], int column);
+int minimax(int board[FIELD_HEIGHT][FIELD_WIDTH], int depth, int turn);
+int heuristic(int s[FIELD_HEIGHT][FIELD_WIDTH]);
+int endgame(int s[FIELD_HEIGHT][FIELD_WIDTH], int player);
+int put(int board[FIELD_HEIGHT][FIELD_WIDTH], int column, int player);
+
+/* - Parser functions ---------------------------------------------------------------- */
 
 /* Abort on failure */
 void die(const char *message)
@@ -186,58 +194,58 @@ void parse_update(char *str1, char *str2, char *str3, game_t *game)
                 "%d,%d,%d,%d,%d,%d,%d;",
 
                 // 6th row
-                &game->field[0],
-                &game->field[1],
-                &game->field[2],
-                &game->field[3],
-                &game->field[4],
-                &game->field[5],
-                &game->field[6],
+                &game->field[0][0],
+                &game->field[0][1],
+                &game->field[0][2],
+                &game->field[0][3],
+                &game->field[0][4],
+                &game->field[0][5],
+                &game->field[0][6],
 
                 // 5th row
-                &game->field[7],
-                &game->field[8],
-                &game->field[9],
-                &game->field[10],
-                &game->field[11],
-                &game->field[12],
-                &game->field[13],
+                &game->field[1][0],
+                &game->field[1][1],
+                &game->field[1][2],
+                &game->field[1][3],
+                &game->field[1][4],
+                &game->field[1][5],
+                &game->field[1][6],
 
                 // 4th row
-                &game->field[14],
-                &game->field[15],
-                &game->field[16],
-                &game->field[17],
-                &game->field[18],
-                &game->field[19],
-                &game->field[20],
+                &game->field[2][0],
+                &game->field[2][1],
+                &game->field[2][2],
+                &game->field[2][3],
+                &game->field[2][4],
+                &game->field[2][5],
+                &game->field[2][6],
 
                 // 3rd row
-                &game->field[21],
-                &game->field[22],
-                &game->field[23],
-                &game->field[24],
-                &game->field[25],
-                &game->field[26],
-                &game->field[27],
+                &game->field[3][0],
+                &game->field[3][1],
+                &game->field[3][2],
+                &game->field[3][3],
+                &game->field[3][4],
+                &game->field[3][5],
+                &game->field[3][6],
 
                 // 2nd row
-                &game->field[28],
-                &game->field[29],
-                &game->field[30],
-                &game->field[31],
-                &game->field[32],
-                &game->field[33],
-                &game->field[34],
+                &game->field[4][0],
+                &game->field[4][1],
+                &game->field[4][2],
+                &game->field[4][3],
+                &game->field[4][4],
+                &game->field[4][5],
+                &game->field[4][6],
 
                 // 1st row
-                &game->field[35],
-                &game->field[36],
-                &game->field[37],
-                &game->field[38],
-                &game->field[39],
-                &game->field[40],
-                &game->field[41]);
+                &game->field[5][0],
+                &game->field[5][1],
+                &game->field[5][2],
+                &game->field[5][3],
+                &game->field[5][4],
+                &game->field[5][5],
+                &game->field[5][6]);
     }
 
     return;
@@ -257,11 +265,13 @@ void debug_print(game_t *game)
     fprintf(stdout, "\nupdate:round\t\t%d",        game->round);
     fprintf(stdout, "\nupdate:field\t\t");
 
-    for(int i = 0; i < FIELD; i++) {
-        if(((i%7)==0) && (i>0)) {
-            fprintf(stdout, "\n\t\t\t");
+    /* print the whole field */
+    for(int i = 0; i < FIELD_HEIGHT; i++) {
+        for(int j = 0; j < FIELD_WIDTH; j++) {
+            fprintf(stdout, "%d ", game->field[i][j]);
         }
-        fprintf(stdout, "%d ", game->field[i]);
+
+        fprintf(stdout, "\n\t\t\t");
     }
 
     fprintf(stdout, "\n-----------END GAME OBJ DUMP-----------");
@@ -283,39 +293,195 @@ void init_game(game_t *game)
     game->field_rows = 0;
     game->round = 0;
 
-    for(int i = 0; i < FIELD; i++) {
-        game->field[i] = 0;
+    for(int i = 0; i < FIELD_HEIGHT; i++) {
+        for(int j = 0; j < FIELD_WIDTH; j++) {
+            game->field[i][j] = 0;
+        }
     }
 }
+
+/* - AI functions -------------------------------------------------------------------- */
 
 /* Random AI action for engine test */
 void ai_action(char *str1, char *str2, game_t *game)
 {
-    int column = 0;
-
-    // action move
+    /* action move */
     if (!strcmp(str1, "move")) {
         game->timebank = atoi(str2);
     }
 
-    // random move
-    column = rand() % FIELD_WIDTH;
-    fprintf(stdout, "place_disc %d\n", column);
+    /* random move */
+    //column = rand() % FIELD_WIDTH;
+    //fprintf(stdout, "place_disc %d\n", column);
+
+    /* minimax decision */
+    int col, move;
+    int n, val = -10000-1;
+
+    for(col=0; col < 7; col++) {
+        if(game->field[6-1][col]==0) {
+            put(game->field, col, 2);
+            n = minimax(game->field, DEPTH, 1);
+            if ( -n > val ) {
+                val = -n;
+                move = col;
+            }
+            rmv(game->field, col);
+        }
+    }
+
+    fprintf(stdout, "place_disc %d\n", move);
 }
 
-/* Calls the alpha-beta pruning algorithm */
-int alpha_beta_search(game_t *game)
+/* set disc */
+int put(int board[FIELD_HEIGHT][FIELD_WIDTH], int column, int player)
 {
-    return max_value(game, 0, INT_MIN, INT_MAX);
+    int i;
+
+    for(i = 0; i < FIELD_HEIGHT; i++) {
+        if(board[i][column] == 0) {
+            board[i][column] = player;
+            return i+1;
+        }
+    }
+
+    return i;
 }
 
-/* Returns the highest possible utility value */
-int max_value(game_t *game, int depth, int alpha, int beta)
+/* remove disc */
+void rmv(int board[FIELD_HEIGHT][FIELD_WIDTH], int column)
 {
-    return 0;
+    int i;
+
+    for (i=FIELD_HEIGHT-1; i>=0; i--) {
+        if (board[i][column] != 0) {
+            board[i][column] = 0;
+        }
+    }
 }
 
-/* Main routine */
+/*0=no, 1=your_bot, 2=opponent, 3=stalemate */
+int endgame(int s[FIELD_HEIGHT][FIELD_WIDTH], int player)
+{
+    int i, j;
+
+    //check horizontals
+    for(i=0; i<6; i++)
+        for(j=0; j<=7-4; j++) {
+            if(s[i][j]== player && s[i][j+1]== player && s[i][j+2]== player && s[i][j+3]== player) {
+                return player;
+            }
+        }
+
+    //check verticals
+    for(i=0; i<=6-4; i++)
+        for(j=0; j<7; j++) {
+            if(s[i][j]== player && s[i+1][j]== player && s[i+2][j]== player && s[i+3][j]== player ) {
+                return player;
+            }
+        }
+
+    //check main diagonals (\)
+    for(i=6-1; i>=4-1; i--)
+        for(j=0; j<=7-4; j++) {
+            if(s[i][j]== player && s[i-1][j+1]== player && s[i-2][j+2]== player && s[i-3][j+3]== player) {
+                return player;
+            }
+        }
+
+    //check other diagonals (/)
+    for(i=0; i<=6-4; i++)
+        for(j=0; j<=7-4; j++) {
+            if(s[i][j]== player && s[i+1][j+1]== player && s[i+2][j+2]== player && s[i+3][j+3]== player) {
+                return player;
+            }
+        }
+
+    //check if stalement
+    for(i=0; i<7; i++)
+        if(s[i][6-1]==0) {
+            return 0;    //game haven't finished yet - there's at least one empty cell in a top of a row
+        }
+
+    return 3; //stalemate - board is full
+}
+
+/* Calculates the score of a move */
+int heuristic(int s[6][7])
+{
+    int result = 0;
+    int i, j;
+
+    //check horizontals
+    for(i=0; i<6; i++)
+        for(j=0; j<=7-4; j++) {
+            if(s[i][j]!= 2 && s[i][j+1]!= 2 && s[i][j+2]!= 2 && s[i][j+3]!= 2) {
+                result++;
+            }
+            if(s[i][j]!= 1 && s[i][j+1]!= 1 && s[i][j+2]!= 1 && s[i][j+3]!= 1) {
+                result--;
+            }
+        }
+
+    //check verticals
+    for(i=0; i<=6-4; i++)
+        for(j=0; j<7; j++) {
+            if(s[i][j]!= 2 && s[i+1][j]!= 2 && s[i+2][j]!= 2 && s[i+3][j]!= 2 ) {
+                result++;
+            }
+            if(s[i][j]!= 1 && s[i+1][j]!= 1 && s[i+2][j]!= 1 && s[i+3][j]!= 1 ) {
+                result--;
+            }
+        }
+
+    return result;
+}
+
+int minimax(int board[6][7], int depth, int turn /*1 or 2*/)
+{
+    int e=0;
+    int col=0, best=0;
+    int n=0 ;
+    int player=0;
+
+    if((e=endgame(board, player))) {
+        if(e==3) {
+            return 0;
+        }
+        if(e==turn) {
+            return 10000;
+        } else {
+            return -10000;
+        }
+    }
+
+    if(depth==0) {
+        return ((turn==1) ? heuristic(board) : -heuristic(board));
+    }
+
+    best = -10000;
+
+    for(col=0; col < 7; col++)     //check every move
+        if(board[6-1][col]==0) {   //make sure column isn't empty
+            put(board, col, turn);
+            n = minimax(board, depth-1, 3-turn);
+            if(turn==1) {
+                if ( -n > best ) {
+                    best = -n;
+                }
+            } else { //turn==2
+                if ( -n > best ) {
+                    best = -n;
+                }
+            }
+            rmv(board, col);
+        }
+
+    return best;
+}
+
+/* - Main --------------------------------------------------------------------------- */
+
 int main(int argc, char **argv)
 {
     /* Game vars */
