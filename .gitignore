@@ -1,4 +1,9 @@
 *
 !Makefile
 !hatred.c
+!parser.c
+!minimax.c
+!hatred.h
+!parser.h
+!minimax.h
 !.gitignore
