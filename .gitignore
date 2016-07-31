@@ -1,9 +1,9 @@
 *
 !Makefile
-!hatred.c
+!connect4bot.c
+!connect4bot.h
 !parser.c
-!minimax.c
-!hatred.h
 !parser.h
+!minimax.c
 !minimax.h
 !.gitignore
