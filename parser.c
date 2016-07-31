@@ -1,5 +1,7 @@
 #include"parser.h"
 
+#define DEBUG
+
 /* Globals */
 char input[3][MAX_LENGTH];  // Holds arguments of the game engine
 char line[MAX_LENGTH];      // Gets filled with a whole game line
@@ -220,8 +222,8 @@ void debug_print(game_t *game)
     fprintf(stdout, "\nupdate:field\t\t");
 
     /* print the whole field */
-    for(int i = 0; i < FIELD_HEIGHT; i++) {
-        for(int j = 0; j < FIELD_WIDTH; j++) {
+    for(int i = 0; i < F_ROWS; i++) {
+        for(int j = 0; j < F_COLS; j++) {
             fprintf(stdout, "%d ", game->field[i][j]);
         }
 

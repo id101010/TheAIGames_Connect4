@@ -6,7 +6,7 @@
 #include<stdlib.h>
 #include<errno.h>
 
-#include"hatred.h"
+#include"connect4bot.h"
 #include"minimax.h"
 
 /* Defines */
