@@ -4,14 +4,13 @@
 /* Defines */
 #define STDPLAYER 1
 
-
 /* Globals */
 game_t game;    // Global game object
 
 void init_game(game_t *game)
 {
     /* init random number generator */
-    //srand(time(NULL));
+    srand(time(NULL));
 
     /* init game object */
     game->timebank      = 0;

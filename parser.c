@@ -1,6 +1,6 @@
 #include"parser.h"
 
-#define DEBUG
+//#define DEBUG
 
 /* Globals */
 char input[3][MAX_LENGTH];  // Holds arguments of the game engine

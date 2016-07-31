@@ -9,7 +9,7 @@ CC=gcc
 COMPRESS=tar -czf
 CFLAGS=-std=c99 -Wall -O2 -static
 CLIBS=-lm
-PRGNAME=hatred
+PRGNAME=connect4bot
 
 # Files
 CFILES=$(shell find . -name '*.c')
